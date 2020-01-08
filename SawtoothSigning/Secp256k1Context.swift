@@ -87,7 +87,7 @@ public class Secp256k1Context: Context {
         }
     }
 
-    public func getPublicKey(privateKey: PrivateKey) throws -> PublicKey {
+    /*public func getPublicKey(privateKey: PrivateKey) throws -> PublicKey {
         let ctx = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN))
         var pubKey = secp256k1_pubkey()
 
@@ -102,6 +102,25 @@ public class Secp256k1Context: Context {
             ctx!, &pubKeyBytes, &outputLen, &pubKey, UInt32(SECP256K1_EC_COMPRESSED))
 
         secp256k1_context_destroy(ctx)
+        return Secp256k1PublicKey(pubKey: pubKeyBytes)
+    }*/
+    public func getPublicKey(privateKey: PrivateKey) throws -> PublicKey {
+        let ctx = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN))
+        var pubKey = secp256k1_pubkey()
+
+        if secp256k1_ec_pubkey_create(ctx!, &pubKey, privateKey.getBytes()) == 0 {
+            secp256k1_context_destroy(ctx)
+            throw SigningError.invalidPrivateKey
+        }
+//33->65
+        var pubKeyBytes = [UInt8](repeating: 0, count: 65)
+        var outputLen = 65
+       //SECP256K1_EC_UNCOMPRESSED -> SECP256K1_EC_COMPRESSED
+        _ = secp256k1_ec_pubkey_serialize(
+            ctx!, &pubKeyBytes, &outputLen, &pubKey, UInt32(SECP256K1_EC_UNCOMPRESSED))
+
+        secp256k1_context_destroy(ctx)
+        print("1")
         return Secp256k1PublicKey(pubKey: pubKeyBytes)
     }
 
