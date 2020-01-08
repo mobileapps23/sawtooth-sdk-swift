@@ -15,7 +15,6 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
-
 import secp256k1
 import Security
 
@@ -24,50 +23,31 @@ public class Secp256k1Context: Context {
     public init() {}
 
     public static var algorithmName = "secp256k1"
-// var pubKeyBytes = [UInt8](repeating: 0, count: 65)
-//         var outputLen = 65
-//         _ = secp256k1_ec_pubkey_serialize(
-//             ctx!, &pubKeyBytes, &outputLen, &pubKey, UInt32(SECP256K1_EC_UNCOMPRESSED))
 
-//         secp256k1_context_destroy(ctx)
-//         print("1")
-//         return Secp256k1PublicKey(pubKey: pubKeyBytes)
     public func sign(data: [UInt8], privateKey: PrivateKey) throws -> String {
         let ctx = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN))
-        var sig = secp256k1_ecdsa_signature()//left as it is
-        var msgDigest = hash(data: data)/left as it is
+        var sig = secp256k1_ecdsa_signature()
+
+        var msgDigest = hash(data: data)
         var resultSign = msgDigest.withUnsafeMutableBytes { (msgDigestBytes) in
             secp256k1_ecdsa_sign(ctx!, &sig, msgDigestBytes, privateKey.getBytes(), nil, nil)
-        }               
+        }
         if resultSign == 0 {
             throw SigningError.invalidPrivateKey
         }
-        //var outputLen = 71  //new
-        //var outputBytes = [UInt8](repeating: 0, count: 71)  //new
-        
+
         var input: [UInt8] {
             var tmp = sig.data
             return [UInt8](UnsafeBufferPointer(start: &tmp.0, count: MemoryLayout.size(ofValue: tmp)))
         }
-        
-
-        
-        //var derSig = secp256k1_ecdsa_signature_serialize_der(ctx!, &outputBytes, &outputlen, &sig)//new
-        //print("2")
-        //if derSig == 0 {//new
-        //    print("3")
-        //    throw SigningError.invalidPrivateKey
-        //}
-       // print("4")
         var compactSig = secp256k1_ecdsa_signature()
-    
-         if secp256k1_ecdsa_signature_parse_compact(ctx!, &compactSig, input) == 0 {
-             secp256k1_context_destroy(ctx)
-             throw SigningError.invalidSignature
-         }
+
+        if secp256k1_ecdsa_signature_parse_compact(ctx!, &compactSig, input) == 0 {
+            secp256k1_context_destroy(ctx)
+            throw SigningError.invalidSignature
+        }
 
         var csigArray: [UInt8] {
-            //var tmp = derSig.data
             var tmp = compactSig.data
             return [UInt8](UnsafeBufferPointer(start: &tmp.0, count: MemoryLayout.size(ofValue: tmp)))
         }
@@ -105,8 +85,7 @@ public class Secp256k1Context: Context {
             return false
         }
     }
-
-    /*public func getPublicKey(privateKey: PrivateKey) throws -> PublicKey {
+/*public func getPublicKey(privateKey: PrivateKey) throws -> PublicKey {
         let ctx = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN))
         var pubKey = secp256k1_pubkey()
 
@@ -142,6 +121,7 @@ public class Secp256k1Context: Context {
         print("1")
         return Secp256k1PublicKey(pubKey: pubKeyBytes)
     }
+
 
     public func newRandomPrivateKey() -> PrivateKey {
         let ctx = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_SIGN))
