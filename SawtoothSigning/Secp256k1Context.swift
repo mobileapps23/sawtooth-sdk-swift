@@ -42,8 +42,8 @@ public class Secp256k1Context: Context {
         if resultSign == 0 {
             throw SigningError.invalidPrivateKey
         }
-        var outputLen = 71  //new
-        var outputBytes = [UInt8](repeating: 0, count: 71)  //new
+        //var outputLen = 71  //new
+        //var outputBytes = [UInt8](repeating: 0, count: 71)  //new
         
         var input: [UInt8] {
             var tmp = sig.data
@@ -52,23 +52,23 @@ public class Secp256k1Context: Context {
         
 
         
-        var derSig = secp256k1_ecdsa_signature_serialize_der(ctx!, &outputBytes, &outputlen, &sig)//new
-        print("2")
-        if derSig == 0 {//new
-            print("3")
-            throw SigningError.invalidPrivateKey
-        }
-        print("4")
-        //var compactSig = secp256k1_ecdsa_signature()
+        //var derSig = secp256k1_ecdsa_signature_serialize_der(ctx!, &outputBytes, &outputlen, &sig)//new
+        //print("2")
+        //if derSig == 0 {//new
+        //    print("3")
+        //    throw SigningError.invalidPrivateKey
+        //}
+       // print("4")
+        var compactSig = secp256k1_ecdsa_signature()
     
-//         if secp256k1_ecdsa_signature_parse_compact(ctx!, &compactSig, input) == 0 {
-//             secp256k1_context_destroy(ctx)
-//             throw SigningError.invalidSignature
-//         }
+         if secp256k1_ecdsa_signature_parse_compact(ctx!, &compactSig, input) == 0 {
+             secp256k1_context_destroy(ctx)
+             throw SigningError.invalidSignature
+         }
 
         var csigArray: [UInt8] {
-            var tmp = derSig.data
-            //var tmp = compactSig.data
+            //var tmp = derSig.data
+            var tmp = compactSig.data
             return [UInt8](UnsafeBufferPointer(start: &tmp.0, count: MemoryLayout.size(ofValue: tmp)))
         }
 
